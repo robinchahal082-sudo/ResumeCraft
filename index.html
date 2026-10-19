@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1e3a8a" />
+  <meta name="description" content="Free one-page university student resume builder. Build, preview and download an ATS-friendly A4 resume." />
+  <title>ResumeCraft — Student Resume Builder</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="view-edit">
+
+  <!-- ============ HEADER / TOOLBAR ============ -->
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-mark">UR</span>
+      <div class="brand-text">
+        <strong>ResumeCraft</strong>
+        <small>Create a polished resume in minutes</small>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <label class="ctl-inline">
+        <span class="ctl-label">Template</span>
+        <select id="template-select" aria-label="Choose resume template">
+          <option value="ats">ATS Classic</option>
+          <option value="modern">Modern Professional</option>
+          <option value="fresher">Student / Fresher</option>
+          <option value="corporate">Corporate Serif</option>
+          <option value="executive">Executive</option>
+          <option value="elegant">Elegant Minimal</option>
+          <option value="bold">Bold Accent</option>
+          <option value="compact">Compact ATS</option>
+          <option value="two-column">Two Column Sidebar</option>
+        </select>
+      </label>
+      <label class="ctl-inline ctl-color" title="Accent colour">
+        <span class="ctl-label">Accent</span>
+        <input type="color" id="accent-color" value="#1e3a8a" aria-label="Accent colour" />
+      </label>
+      <button type="button" id="theme-toggle" class="btn btn-ghost" title="Switch between light and dark appearance" aria-pressed="false">☾ Dark mode</button>
+      <button type="button" id="btn-sample" class="btn btn-ghost" title="Clear resume data and start from scratch">Blank Resume</button>
+      <button type="button" id="btn-optimize" class="btn btn-ghost" title="Check how many pages your resume needs">Check Pages</button>
+      <button type="button" id="btn-import" class="btn btn-ghost" title="Import a .json resume">Import</button>
+      <button type="button" id="btn-export-json" class="btn btn-ghost" title="Save your data as .json">Export JSON</button>
+      <input type="file" id="import-file" accept="application/json,.json" hidden />
+      <button type="button" id="btn-pdf" class="btn btn-primary" title="Download a print-ready PDF">Download PDF</button>
+    </div>
+  </header>
+
+  <!-- ============ MOBILE TABS ============ -->
+  <nav class="mobile-tabs" aria-label="Editor or preview">
+    <button type="button" class="tab-btn active" id="tab-edit">Edit</button>
+    <button type="button" class="tab-btn" id="tab-preview">Preview</button>
+  </nav>
+
+  <main class="app-main">
+    <!-- ============ EDITOR (LEFT) ============ -->
+    <section class="editor-panel" id="editor-panel" aria-label="Resume editor">
+      <ol class="stepper" id="stepper"></ol>
+
+      <form id="resume-form" novalidate autocomplete="on">
+
+        <!-- STEP 1 : PERSONAL INFORMATION -->
+        <section class="step" data-step="1">
+          <h2 class="step-title">1. Personal Information</h2>
+          <p class="step-hint">Start with the basics. Your name and one contact method are the only required fields.</p>
+          <div class="grid two">
+            <div class="field"><label for="pi-name">Full name <span class="req">*</span></label><input id="pi-name" data-model="personal.fullName" type="text" placeholder="e.g. Your Name" /><span class="err" data-err="personal.fullName"></span></div>
+            <div class="field"><label for="pi-phone">Phone</label><input id="pi-phone" data-model="personal.phone" type="tel" placeholder="+91 98765 43210" /></div>
+            <div class="field"><label for="pi-email">Email</label><input id="pi-email" data-model="personal.email" type="email" placeholder="you@example.com" /><span class="err" data-err="personal.email"></span></div>
+            <div class="field"><label for="pi-location">Location</label><input id="pi-location" data-model="personal.location" type="text" placeholder="City, State" /></div>
+            <div class="field"><label for="pi-linkedin">LinkedIn</label><input id="pi-linkedin" data-model="personal.linkedin" type="text" placeholder="linkedin.com/in/username" /></div>
+            <div class="field"><label for="pi-portfolio">Portfolio / GitHub</label><input id="pi-portfolio" data-model="personal.portfolio" type="text" placeholder="github.com/username" /></div>
+            <div class="field"><label for="pi-course">Course / Degree</label>
+              <input id="pi-course" data-model="personal.course" type="text" list="course-list" placeholder="e.g. B.Tech" />
+              <datalist id="course-list"></datalist>
+            </div>
+            <div class="field"><label for="pi-stream">Academic stream</label>
+              <select id="pi-stream" data-model="personal.stream"><option value="">Select stream…</option></select>
+            </div>
+            <div class="field"><label for="pi-goal">Career goal</label>
+              <select id="pi-goal" data-model="personal.careerGoal"><option value="">Select a goal…</option></select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="pi-objective">Career objective</label>
+            <textarea id="pi-objective" data-model="personal.objective" rows="5" placeholder="Write 3-5 lines about who you are, your strengths and what you are looking for. Press Enter for a new line."></textarea>
+            <button type="button" class="btn btn-mini" id="btn-suggest-objective">Suggest an objective for my stream</button>
+            <span class="hint" id="objective-meta"></span>
+          </div>
+        </section>
+
+        <!-- STEP 2 : EDUCATION -->
+        <section class="step" data-step="2">
+          <h2 class="step-title">2. Education</h2>
+          <p class="step-hint">Freshers: education is your strongest section — list your latest qualification first.</p>
+          <div id="education-list" class="entry-list"></div>
+          <button type="button" class="btn btn-add" id="education-add">+ Add education</button>
+        </section>
+
+        <!-- STEP 3 : SKILLS -->
+        <section class="step" data-step="3">
+          <h2 class="step-title">3. Skills &amp; Strengths</h2>
+          <p class="step-hint">Type a skill and press Enter. Mix technical and soft skills.</p>
+          <div class="tag-input">
+            <input id="skills-input" type="text" placeholder="e.g. Communication" aria-label="Add a skill" />
+            <button type="button" class="btn btn-add" id="skills-add">Add</button>
+          </div>
+          <div id="skills-tags" class="tag-cloud"></div>
+          <div class="suggest" id="skills-suggest" hidden>
+            <span class="suggest-title">Suggested for your stream:</span>
+            <span class="suggest-chips" id="skills-suggest-chips"></span>
+          </div>
+        </section>
+
+        <!-- STEP 4 : EXPERIENCE -->
+        <section class="step" data-step="4">
+          <h2 class="step-title">4. Experience &amp; Internships</h2>
+          <p class="step-hint">No experience yet? Skip this step — your projects and education can carry the resume.</p>
+          <div id="experience-list" class="entry-list"></div>
+          <button type="button" class="btn btn-add" id="experience-add">+ Add experience</button>
+        </section>
+
+        <!-- STEP 5 : PROJECTS -->
+        <section class="step" data-step="5">
+          <h2 class="step-title">5. Projects &amp; Practical Work</h2>
+          <p class="step-hint">Course projects, practicals, case studies or field work all count here.</p>
+          <div id="projects-list" class="entry-list"></div>
+          <button type="button" class="btn btn-add" id="projects-add">+ Add project</button>
+        </section>
+
+        <!-- STEP 6 : CERTIFICATIONS & ACHIEVEMENTS -->
+        <section class="step" data-step="6">
+          <h2 class="step-title">6. Certifications &amp; Achievements</h2>
+          <p class="step-hint">Both optional. Add any online courses, awards or recognitions.</p>
+          <h3 class="sub-head">Certifications</h3>
+          <div id="certifications-list" class="entry-list"></div>
+          <button type="button" class="btn btn-add" id="certifications-add">+ Add certification</button>
+          <h3 class="sub-head">Achievements</h3>
+          <div id="achievements-list" class="entry-list"></div>
+          <button type="button" class="btn btn-add" id="achievements-add">+ Add achievement</button>
+        </section>
+
+        <!-- STEP 7 : ADDITIONAL INFORMATION -->
+        <section class="step" data-step="7">
+          <h2 class="step-title">7. Additional Information</h2>
+          <p class="step-hint">All optional. Round out your resume — then reorder sections in Review.</p>
+          <h3 class="sub-head">Languages</h3>
+          <div id="languages-list" class="entry-list compact"></div>
+          <button type="button" class="btn btn-add" id="languages-add">+ Add language</button>
+          <h3 class="sub-head">Activities &amp; Responsibilities</h3>
+          <div id="activities-list" class="entry-list"></div>
+          <button type="button" class="btn btn-add" id="activities-add">+ Add activity</button>
+          <h3 class="sub-head">Interests</h3>
+          <div class="tag-input">
+            <input id="interests-input" type="text" placeholder="e.g. Cricket" aria-label="Add an interest" />
+            <button type="button" class="btn btn-add" id="interests-add">Add</button>
+          </div>
+          <div id="interests-tags" class="tag-cloud"></div>
+          <h3 class="sub-head">Custom sections</h3>
+          <div id="custom-list" class="entry-list"></div>
+          <button type="button" class="btn btn-add" id="custom-add">+ Add custom section</button>
+        </section>
+
+        <!-- STEP 8 : REVIEW & DOWNLOAD -->
+        <section class="step" data-step="8">
+          <h2 class="step-title">8. Review &amp; Download</h2>
+          <p class="step-hint">Check your progress, reorder sections, then download a one-page PDF.</p>
+          <div id="checklist" class="checklist"></div>
+          <div class="review-card template-picker-card">
+            <div class="review-card-heading"><div><span class="eyebrow">DESIGN STUDIO</span><h3 class="sub-head">Choose your resume design</h3></div><span class="soft-pill">9 templates</span></div>
+            <p class="step-hint">Select a style to update the live preview instantly.</p>
+            <div id="template-gallery" class="template-gallery" aria-label="Resume template gallery"></div>
+          </div>
+          <div class="section-manager-heading">
+            <div><h3 class="sub-head">Edit, add &amp; reorder sections</h3><p class="step-hint">Rename headings, hide built-in sections, or create your own sections.</p></div>
+            <button type="button" id="section-add-new" class="btn btn-add">+ Add new section</button>
+          </div>
+          <ul id="section-order" class="section-order"></ul>
+          <div class="review-actions">
+            <button type="button" id="btn-pdf-2" class="btn btn-primary">Download PDF</button>
+            <button type="button" id="btn-optimize-2" class="btn btn-ghost">Check My Page Count</button>
+          </div>
+        </section>
+
+        <!-- WIZARD NAV -->
+        <div class="wizard-nav">
+          <button type="button" id="btn-prev" class="btn btn-ghost">Back</button>
+          <span class="save-state" id="save-state" aria-live="polite"></span>
+          <button type="button" id="btn-next" class="btn btn-primary">Next</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ============ PREVIEW (RIGHT) ============ -->
+    <section class="preview-panel" id="preview-panel" aria-label="Live resume preview">
+      <div class="preview-toolbar">
+        <span class="preview-title">Live preview — A4 portrait</span>
+        <div class="zoom-controls">
+          <button type="button" id="zoom-out" class="btn btn-icon" title="Zoom out" aria-label="Zoom out">−</button>
+          <span id="zoom-label">100%</span>
+          <button type="button" id="zoom-in" class="btn btn-icon" title="Zoom in" aria-label="Zoom in">+</button>
+          <button type="button" id="zoom-fit" class="btn btn-mini" title="Fit to screen">Fit</button>
+        </div>
+      </div>
+      <div class="preview-scroll" id="preview-scroll">
+        <div class="preview-stage">
+          <div id="resume-preview" class="resume-page tpl-ats"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ OVERLAYS ============ -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="loader" class="loader-overlay" hidden>
+    <div class="loader-box">
+      <div class="spinner" aria-hidden="true"></div>
+      <p id="loader-msg">Working…</p>
+    </div>
+  </div>
+  <div id="export-node" class="export-node" aria-hidden="true"></div>
+
+  <!-- PDF engine: local copies first (work offline / file://), CDN fallbacks below -->
+  <script src="vendor/html2canvas.min.js"></script>
+  <script src="vendor/jspdf.umd.min.js"></script>
+  <script>
+    // Runtime fallback to CDN if a local vendor file is missing.
+    (function () {
+      function ensure(src, test) {
+        if (!test()) { var s = document.createElement("script"); s.src = src; s.async = false; document.head.appendChild(s); }
+      }
+      ensure("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js", function(){ return typeof html2canvas !== "undefined"; });
+      ensure("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js", function(){ return !!(window.jspdf && window.jspdf.jsPDF); });
+    })();
+  </script>  <script src="js/data.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/pdf.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
